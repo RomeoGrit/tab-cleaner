@@ -1,0 +1,346 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 420px;
+  max-height: 600px;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #0f0f0f;
+  color: #f1f1f1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 14px 16px 10px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.badge {
+  background: #4ade80;
+  color: #0f0f0f;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.search-wrap {
+  margin-bottom: 8px;
+}
+
+#search {
+  width: 100%;
+  background: #0f0f0f;
+  border: 1px solid #333;
+  color: #f1f1f1;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+#search:focus {
+  border-color: #4ade80;
+}
+
+#search::placeholder {
+  color: #666;
+}
+
+.controls {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn-icon {
+  background: #272727;
+  border: none;
+  color: #aaa;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-icon:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.btn-icon.active {
+  background: #4ade80;
+  color: #0f0f0f;
+}
+
+.sort-options {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.sort-options button {
+  background: #272727;
+  border: none;
+  color: #aaa;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sort-options button.active {
+  background: #4ade80;
+  color: #0f0f0f;
+}
+
+.sort-options button:hover:not(.active) {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.groups-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px;
+}
+
+.groups-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.groups-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.groups-list::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+
+.groups-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.domain-group {
+  margin-bottom: 8px;
+  background: #1a1a1a;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #222;
+}
+
+.domain-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #222;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.domain-header:hover {
+  background: #2a2a2a;
+}
+
+.domain-header .chevron {
+  font-size: 10px;
+  color: #888;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.domain-group.collapsed .chevron {
+  transform: rotate(-90deg);
+}
+
+.domain-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: #333;
+}
+
+.domain-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f1f1;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.domain-count {
+  background: #333;
+  color: #ccc;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.btn-close-domain {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-close-domain:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.domain-tabs {
+  padding: 4px 6px;
+}
+
+.domain-group.collapsed .domain-tabs {
+  display: none;
+}
+
+.tab-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tab-row:hover {
+  background: #272727;
+}
+
+.tab-row.active {
+  background: #1f3a1f;
+}
+
+.tab-row.active:hover {
+  background: #2a4a2a;
+}
+
+.tab-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: #333;
+}
+
+.tab-title {
+  flex: 1;
+  font-size: 12px;
+  color: #ddd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-close-tab {
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.tab-row:hover .btn-close-tab {
+  opacity: 1;
+}
+
+.btn-close-tab:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: #888;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.empty-hint {
+  font-size: 11px !important;
+  color: #555;
+}
+
+footer {
+  padding: 8px 16px;
+  background: #1a1a1a;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.footer-hint {
+  font-size: 10px;
+  color: #555;
+}
+
+.hidden {
+  display: none !important;
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Cleaner</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <h1>🧹 Tab Cleaner</h1>
+      <span id="tab-count" class="badge">0</span>
+    </div>
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="Ieškoti tabų..." autocomplete="off">
+    </div>
+    <div class="controls">
+      <button id="btn-sort" class="btn-icon" title="Rikiuoti">↕</button>
+      <button id="btn-refresh" class="btn-icon" title="Atnaujinti">↻</button>
+      <button id="btn-collapse" class="btn-icon" title="Sutraukti/išskleisti visus">⊟</button>
+      <button id="btn-close-all" class="btn-icon btn-danger" title="Uždaryti visus tabus">✕</button>
+    </div>
+  </header>
+
+  <div id="sort-options" class="sort-options hidden">
+    <button data-sort="domain" class="active">Domenas (A-Z)</button>
+    <button data-sort="count">Tabų skaičius</button>
+    <button data-sort="recent">Naujausi</button>
+  </div>
+
+  <div id="groups-list" class="groups-list"></div>
+
+  <div id="empty-state" class="empty-state hidden">
+    <div class="empty-icon">🌐</div>
+    <p>Nėra atidarytų tabų</p>
+    <p class="empty-hint">Atidarykite bet kurį tabą ir jis atsiras čia</p>
+  </div>
+
+  <div id="no-results" class="empty-state hidden">
+    <div class="empty-icon">🔍</div>
+    <p>Nieko nerasta</p>
+    <p class="empty-hint">Pakeiskite paieškos užklausą</p>
+  </div>
+
+  <footer>
+    <span id="domain-count">0 domenų</span>
+    <span class="footer-hint">Spauskite tabą - perjungti · ✕ - uždaryti</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
