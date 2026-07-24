@@ -197,6 +197,15 @@ h1 {
   background: #333;
 }
 
+.domain-favicon.time-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  background: transparent;
+}
+
 .domain-name {
   font-size: 13px;
   font-weight: 600;

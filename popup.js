@@ -1,13 +1,27 @@
 let allTabs = [];
 let currentSort = 'domain';
+let currentGroupMode = 'domain';
 let collapsedDomains = new Set();
 let searchQuery = '';
+
+const TIME_BUCKETS = [
+  { id: '1h', label: 'Per paskutinę valandą' },
+  { id: '1-4h', label: 'Prieš 1–4 val.' },
+  { id: '4-8h', label: 'Prieš 4–8 val.' },
+  { id: 'today', label: 'Šiandien' },
+  { id: 'yesterday', label: 'Vakar' },
+  { id: 'week', label: 'Šią savaitę' },
+  { id: 'older', label: 'Seniau' },
+];
+const TIME_BUCKET_ORDER = Object.fromEntries(TIME_BUCKETS.map((b, i) => [b.id, i]));
+const TIME_BUCKET_LABELS = Object.fromEntries(TIME_BUCKETS.map(b => [b.id, b.label]));
 
 document.addEventListener('DOMContentLoaded', () => {
   loadTabs();
   document.getElementById('btn-refresh').addEventListener('click', loadTabs);
   document.getElementById('btn-close-all').addEventListener('click', closeAllTabs);
   document.getElementById('btn-sort').addEventListener('click', toggleSortOptions);
+  document.getElementById('btn-group').addEventListener('click', toggleGroupOptions);
   document.getElementById('btn-collapse').addEventListener('click', toggleAllCollapsed);
   document.getElementById('search').addEventListener('input', onSearch);
 
@@ -18,6 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('active');
       document.getElementById('sort-options').classList.add('hidden');
       renderTabs();
+    });
+  });
+
+  document.querySelectorAll('[data-group]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentGroupMode = btn.dataset.group;
+      document.querySelectorAll('[data-group]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('group-options').classList.add('hidden');
+      collapsedDomains.clear();
+      renderTabs();
+      updateBadges();
     });
   });
 
@@ -63,19 +89,49 @@ function getFaviconUrl(tab, size) {
   return fallback;
 }
 
-function groupTabsByDomain(tabs) {
+function getTimeBucket(ts) {
+  if (!ts) return 'older';
+  const now = Date.now();
+  const age = now - ts;
+  if (age <= 3600000) return '1h';
+  if (age <= 4 * 3600000) return '1-4h';
+  if (age <= 8 * 3600000) return '4-8h';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tabDate = new Date(ts);
+  tabDate.setHours(0, 0, 0, 0);
+  const dayDiff = Math.round((today.getTime() - tabDate.getTime()) / 86400000);
+  if (dayDiff <= 0) return 'today';
+  if (dayDiff === 1) return 'yesterday';
+  if (dayDiff <= 7) return 'week';
+  return 'older';
+}
+
+function getGroupKey(tab) {
+  if (currentGroupMode === 'time') return getTimeBucket(tab.lastAccessed);
+  return getDomain(tab.url);
+}
+
+function groupTabs(tabs) {
   const groups = {};
   for (const tab of tabs) {
-    const domain = getDomain(tab.url);
-    if (!groups[domain]) groups[domain] = [];
-    groups[domain].push(tab);
+    const key = getGroupKey(tab);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(tab);
   }
   return groups;
 }
 
+function getGroupLabel(key) {
+  if (currentGroupMode === 'time') return TIME_BUCKET_LABELS[key] || 'Kita';
+  return key;
+}
+
 function sortGroups(groups) {
   const entries = Object.entries(groups);
-  if (currentSort === 'domain') {
+  if (currentGroupMode === 'time') {
+    entries.sort((a, b) => (TIME_BUCKET_ORDER[a[0]] ?? 99) - (TIME_BUCKET_ORDER[b[0]] ?? 99));
+  } else if (currentSort === 'domain') {
     entries.sort((a, b) => a[0].localeCompare(b[0], 'lt', { sensitivity: 'base' }));
   } else if (currentSort === 'count') {
     entries.sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'lt'));
@@ -128,20 +184,29 @@ function renderTabs() {
 
   noResults.classList.add('hidden');
 
-  const groups = groupTabsByDomain(filtered);
+  const groups = groupTabs(filtered);
   const sorted = sortGroups(groups);
 
-  container.innerHTML = sorted.map(([domain, tabs]) => {
-    const isCollapsed = collapsedDomains.has(domain);
-    const favicon = tabs[0] ? getFaviconUrl(tabs[0], 16) : '';
+  container.innerHTML = sorted.map(([key, tabs]) => {
+    const isCollapsed = collapsedDomains.has(key);
+    const label = getGroupLabel(key);
+    let faviconHtml;
+    if (currentGroupMode === 'time') {
+      faviconHtml = `<span class="domain-favicon time-icon">🕒</span>`;
+    } else {
+      const favicon = tabs[0] ? getFaviconUrl(tabs[0], 16) : '';
+      faviconHtml = favicon
+        ? `<img class="domain-favicon" src="${escapeAttr(favicon)}" alt="" onerror="this.style.display='none'">`
+        : `<span class="domain-favicon"></span>`;
+    }
     return `
-      <div class="domain-group${isCollapsed ? ' collapsed' : ''}" data-domain="${escapeAttr(domain)}">
-        <div class="domain-header" data-domain="${escapeAttr(domain)}">
+      <div class="domain-group${isCollapsed ? ' collapsed' : ''}" data-group-key="${escapeAttr(key)}">
+        <div class="domain-header" data-group-key="${escapeAttr(key)}">
           <span class="chevron">▼</span>
-          ${favicon ? `<img class="domain-favicon" src="${escapeAttr(favicon)}" alt="" onerror="this.style.display='none'">` : `<span class="domain-favicon"></span>`}
-          <span class="domain-name">${escapeHtml(domain)}</span>
+          ${faviconHtml}
+          <span class="domain-name">${escapeHtml(label)}</span>
           <span class="domain-count">${tabs.length}</span>
-          <button class="btn-close-domain" data-domain="${escapeAttr(domain)}" title="Uždaryti visus ${escapeAttr(domain)} tabus">✕</button>
+          <button class="btn-close-domain" data-group-key="${escapeAttr(key)}" title="Uždaryti visus „${escapeAttr(label)}“ tabus">✕</button>
         </div>
         <div class="domain-tabs">
           ${tabs.map(tab => renderTab(tab)).join('')}
@@ -169,15 +234,15 @@ function attachRowEvents() {
   document.querySelectorAll('.domain-header').forEach(header => {
     header.addEventListener('click', (e) => {
       if (e.target.closest('.btn-close-domain')) return;
-      const domain = header.dataset.domain;
-      toggleDomain(domain);
+      const key = header.dataset.groupKey;
+      toggleDomain(key);
     });
   });
 
   document.querySelectorAll('.btn-close-domain').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      closeDomain(btn.dataset.domain);
+      closeGroup(btn.dataset.groupKey);
     });
   });
 
@@ -202,22 +267,22 @@ function attachRowEvents() {
   });
 }
 
-function toggleDomain(domain) {
-  if (collapsedDomains.has(domain)) {
-    collapsedDomains.delete(domain);
+function toggleDomain(key) {
+  if (collapsedDomains.has(key)) {
+    collapsedDomains.delete(key);
   } else {
-    collapsedDomains.add(domain);
+    collapsedDomains.add(key);
   }
   renderTabs();
 }
 
 function toggleAllCollapsed() {
-  const groups = groupTabsByDomain(filterTabs(allTabs));
-  const allCollapsed = Object.keys(groups).every(d => collapsedDomains.has(d));
+  const groups = groupTabs(filterTabs(allTabs));
+  const allCollapsed = Object.keys(groups).every(k => collapsedDomains.has(k));
   if (allCollapsed) {
-    Object.keys(groups).forEach(d => collapsedDomains.delete(d));
+    Object.keys(groups).forEach(k => collapsedDomains.delete(k));
   } else {
-    Object.keys(groups).forEach(d => collapsedDomains.add(d));
+    Object.keys(groups).forEach(k => collapsedDomains.add(k));
   }
   renderTabs();
 }
@@ -226,8 +291,8 @@ async function closeTab(tabId) {
   await chrome.tabs.remove(tabId);
 }
 
-async function closeDomain(domain) {
-  const tabs = allTabs.filter(t => getDomain(t.url) === domain);
+async function closeGroup(key) {
+  const tabs = allTabs.filter(t => getGroupKey(t) === key);
   const ids = tabs.map(t => t.id);
   if (ids.length === 0) return;
   await chrome.tabs.remove(ids);
@@ -248,10 +313,19 @@ function toggleSortOptions() {
   document.getElementById('sort-options').classList.toggle('hidden');
 }
 
+function toggleGroupOptions() {
+  document.getElementById('group-options').classList.toggle('hidden');
+}
+
 function updateBadges() {
   document.getElementById('tab-count').textContent = allTabs.length;
-  const groups = groupTabsByDomain(allTabs);
-  document.getElementById('domain-count').textContent = `${Object.keys(groups).length} domen${Object.keys(groups).length === 1 ? 'as' : 'ų'}`;
+  const groups = groupTabs(allTabs);
+  const count = Object.keys(groups).length;
+  if (currentGroupMode === 'time') {
+    document.getElementById('domain-count').textContent = `${count} grup${count === 1 ? 'ė' : 'ių'}`;
+  } else {
+    document.getElementById('domain-count').textContent = `${count} domen${count === 1 ? 'as' : 'ų'}`;
+  }
 }
 
 function escapeHtml(str) {

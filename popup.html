@@ -16,12 +16,18 @@
       <input id="search" type="text" placeholder="Ieškoti tabų..." autocomplete="off">
     </div>
     <div class="controls">
+      <button id="btn-group" class="btn-icon" title="Grupavimas">▦</button>
       <button id="btn-sort" class="btn-icon" title="Rikiuoti">↕</button>
       <button id="btn-refresh" class="btn-icon" title="Atnaujinti">↻</button>
       <button id="btn-collapse" class="btn-icon" title="Sutraukti/išskleisti visus">⊟</button>
       <button id="btn-close-all" class="btn-icon btn-danger" title="Uždaryti visus tabus">✕</button>
     </div>
   </header>
+
+  <div id="group-options" class="sort-options hidden">
+    <button data-group="domain" class="active">Pagal domeną</button>
+    <button data-group="time">Pagal laiką</button>
+  </div>
 
   <div id="sort-options" class="sort-options hidden">
     <button data-sort="domain" class="active">Domenas (A-Z)</button>
